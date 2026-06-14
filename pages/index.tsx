@@ -2,7 +2,6 @@ import { GetServerSideProps } from 'next';
 import Link from 'next/link';
 import Icon from '../components/Icon';
 import PublicLayout from '../components/PublicLayout';
-import { motivosAcionamento } from '../data/content';
 
 type Campanha = {
   id: number;
@@ -33,6 +32,7 @@ type HomeData = {
   noticias: Noticia[];
   telefones: Telefone[];
   configuracoes: Record<string, string | null>;
+  pagina_como_acionar?: { conteudo: string } | null;
 };
 
 const atalhos = [
@@ -49,9 +49,14 @@ const coresCampanha = [
   'from-amber-500 to-orange-500',
 ];
 
-export default function Home({ campanhas, noticias, telefones, configuracoes }: HomeData) {
+function listItems(content?: string) {
+  return (content || '').split('\n').filter(line => line.trim().startsWith('- ')).map(line => line.trim().slice(2));
+}
+
+export default function Home({ campanhas, noticias, telefones, configuracoes, pagina_como_acionar }: HomeData) {
   const disque100 = telefones.find(item => item.telefone.replace(/\D/g, '') === '100');
   const telefoneConselho = configuracoes.telefone || telefones.find(item => item.titulo.toLowerCase().includes('conselho'))?.telefone;
+  const motivosAcionamento = listItems(pagina_como_acionar?.conteudo);
 
   return (
     <PublicLayout title="Início">
@@ -152,6 +157,7 @@ export const getServerSideProps: GetServerSideProps<HomeData> = async () => {
         noticias: data.noticias || [],
         telefones: data.telefones || [],
         configuracoes: data.configuracoes || {},
+        pagina_como_acionar: data.pagina_como_acionar || null,
       },
     };
   } catch {
@@ -161,6 +167,7 @@ export const getServerSideProps: GetServerSideProps<HomeData> = async () => {
         noticias: [],
         telefones: [],
         configuracoes: {},
+        pagina_como_acionar: null,
       },
     };
   }
