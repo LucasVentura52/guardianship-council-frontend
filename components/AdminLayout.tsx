@@ -15,6 +15,7 @@ const nav = [
   ['phone', 'Telefones Úteis', '/admin/telefones'],
   ['image', 'Mídia', '/admin/midia'],
   ['settings', 'Configurações', '/admin/configuracoes'],
+  ['shield', 'Minha senha', '/admin/senha'],
   ['chart', 'Relatórios', '/admin/relatorios'],
 ] as const;
 

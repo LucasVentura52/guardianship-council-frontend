@@ -1,5 +1,6 @@
 import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/router';
+import Link from 'next/link';
 import Brand from '../../components/Brand';
 import Icon from '../../components/Icon';
 import api, { apiError } from '../../lib/api';
@@ -35,8 +36,9 @@ export default function Login() {
           <p className="mt-2 text-sm text-slate-500">Entre com suas credenciais para continuar.</p>
         </div>
         <form className="mt-8 grid gap-4" onSubmit={entrar}>
-          <label className="text-sm font-bold">E-mail<input className="form-input mt-2" name="email" type="email" defaultValue="admin@conselhotutelar.local" required /></label>
-          <label className="text-sm font-bold">Senha<input className="form-input mt-2" name="password" type="password" defaultValue="Admin1234" required /></label>
+          <label className="text-sm font-bold">E-mail<input className="form-input mt-2" name="email" type="email" autoComplete="email" required /></label>
+          <label className="text-sm font-bold">Senha<input className="form-input mt-2" name="password" type="password" autoComplete="current-password" required /></label>
+          <div className="text-right"><Link href="/admin/esqueci-senha" className="text-sm font-bold text-blue-600 hover:text-blue-700">Esqueci minha senha</Link></div>
           {erro && <p className="rounded-lg bg-rose-50 p-3 text-sm text-rose-700">{erro}</p>}
           <button className="btn-primary mt-2 justify-center disabled:opacity-60" type="submit" disabled={loading}><Icon name="logout" /> {loading ? 'Entrando...' : 'Entrar'}</button>
         </form>
