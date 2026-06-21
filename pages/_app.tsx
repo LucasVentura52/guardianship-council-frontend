@@ -1,4 +1,5 @@
 import NextApp, { AppContext, AppProps } from 'next/app';
+import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
 import { SiteConfig, SiteConfigProvider } from '../lib/site-config';
@@ -35,7 +36,15 @@ export default function App({ Component, pageProps, siteConfig }: Props) {
     return () => router.events.off('routeChangeComplete', track);
   }, [router.asPath, router.events, router.isReady]);
 
-  return <SiteConfigProvider config={siteConfig}><Component {...pageProps} /></SiteConfigProvider>;
+  return (
+    <SiteConfigProvider config={siteConfig}>
+      <Head>
+        <link rel="icon" type="image/jpeg" href="/images/logo-conselho.jpeg" />
+        <link rel="apple-touch-icon" href="/images/logo-conselho.jpeg" />
+      </Head>
+      <Component {...pageProps} />
+    </SiteConfigProvider>
+  );
 }
 
 App.getInitialProps = async (context: AppContext) => {

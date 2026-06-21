@@ -48,7 +48,7 @@ export default function AdminLayout({ children, title, action }: { children: Rea
   }
 
   if (!ready) {
-    return <div className="grid min-h-screen place-items-center bg-slate-50 text-sm font-bold text-slate-500">Validando acesso...</div>;
+    return <div className="grid min-h-screen place-items-center bg-slate-50"><div className="grid justify-items-center gap-4 text-sm font-bold text-slate-500"><Brand compact />Validando acesso...</div></div>;
   }
   return <div className="min-h-screen bg-[#f4f7fb]">
     <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-[#082754] p-5 text-white transition lg:translate-x-0 ${menu ? 'translate-x-0' : '-translate-x-full'}`}>
