@@ -15,10 +15,15 @@ export type SiteConfig = {
   youtube_url?: string | null;
 };
 
+export const DEFAULT_SITE_CONFIG: SiteConfig = {
+  endereco: 'R. Guararapes, 202 - Centro',
+  cidade_uf: 'Cianorte - PR, 87200-000',
+};
+
 const SiteConfigContext = createContext<SiteConfig>({});
 
 export function SiteConfigProvider({ config, children }: { config: SiteConfig; children: ReactNode }) {
-  return <SiteConfigContext.Provider value={config}>{children}</SiteConfigContext.Provider>;
+  return <SiteConfigContext.Provider value={{ ...DEFAULT_SITE_CONFIG, ...config }}>{children}</SiteConfigContext.Provider>;
 }
 
 export function useSiteConfig() {

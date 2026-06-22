@@ -2,6 +2,7 @@ import { FormEvent, useEffect, useState } from 'react';
 import AdminLayout from '../../components/AdminLayout';
 import Icon from '../../components/Icon';
 import api, { apiError } from '../../lib/api';
+import { DEFAULT_SITE_CONFIG } from '../../lib/site-config';
 
 type Config = {
   nome_site?: string;
@@ -37,8 +38,8 @@ export default function Configuracoes() {
       <label className="text-sm font-bold">Nome do site<input name="nome_site" required className="form-input mt-2" defaultValue={config.nome_site} /></label>
       <label className="text-sm font-bold">Telefone<input name="telefone" className="form-input mt-2" defaultValue={config.telefone} /></label>
       <label className="text-sm font-bold sm:col-span-2">E-mail<input name="email" type="email" className="form-input mt-2" defaultValue={config.email} /></label>
-      <label className="text-sm font-bold sm:col-span-2">Endereço<input name="endereco" className="form-input mt-2" defaultValue={config.endereco} /></label>
-      <label className="text-sm font-bold sm:col-span-2">Cidade / UF<input name="cidade_uf" className="form-input mt-2" defaultValue={config.cidade_uf} /></label>
+      <label className="text-sm font-bold sm:col-span-2">Endereço<input name="endereco" className="form-input mt-2" defaultValue={config.endereco || DEFAULT_SITE_CONFIG.endereco || ''} /></label>
+      <label className="text-sm font-bold sm:col-span-2">Cidade / UF<input name="cidade_uf" className="form-input mt-2" defaultValue={config.cidade_uf || DEFAULT_SITE_CONFIG.cidade_uf || ''} /></label>
       <label className="text-sm font-bold sm:col-span-2">Horário de atendimento<input name="horario_atendimento" className="form-input mt-2" defaultValue={config.horario_atendimento} /></label>
       <label className="text-sm font-bold sm:col-span-2">Descrição<textarea name="descricao" className="form-input mt-2 min-h-28" defaultValue={config.descricao} /></label>
       <label className="text-sm font-bold sm:col-span-2">Texto do Disque 100<textarea name="disque_100_texto" className="form-input mt-2 min-h-24" defaultValue={config.disque_100_texto} /></label>
