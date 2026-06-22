@@ -14,7 +14,12 @@ Rotas principais:
 - `/campanhas` e `/noticias`: listagens e detalhes
 - `/mural` e `/contato`: formulários integrados à API
 - `/admin/login`: autenticação administrativa
-- `/admin`: dashboard e gestão
+- `/admin/esqueci-senha`: solicitação de recuperação de senha
+- `/admin/senha`: troca de senha do administrador autenticado
+- `/admin`: dashboard com acessos, indicadores e gestão
+
+As páginas públicas registram visualizações na API sem enviar IP ou informações do
+navegador. O painel administrativo não entra nessa contagem.
 
 Para produção, execute `npm run build` e `npm run start`.
 

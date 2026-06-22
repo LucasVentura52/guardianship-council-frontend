@@ -1,20 +1,36 @@
-import Icon from './Icon';
 import { useSiteConfig } from '../lib/site-config';
 
-export default function Brand({ compact = false, light = false }: { compact?: boolean; light?: boolean }) {
+export default function Brand({
+  compact = false,
+  light = false,
+  className = '',
+}: {
+  compact?: boolean;
+  light?: boolean;
+  className?: string;
+}) {
   const config = useSiteConfig();
   const name = config.nome_site || 'Conselho Tutelar';
+
   return (
-    <div className="flex items-center gap-3">
-      <span className="relative grid h-11 w-11 place-items-center rounded-xl bg-blue-600 text-white shadow-lg shadow-blue-600/20">
-        <Icon name="shield" size={27} />
-        <span className="absolute -bottom-1 -right-1 h-3.5 w-3.5 rounded-full bg-amber-400 ring-2 ring-white" />
-      </span>
-      {!compact && (
-        <span className={`max-w-36 text-[17px] font-extrabold uppercase leading-[1.05] ${light ? 'text-white' : 'text-[#0b2f70]'}`}>
-          {name}
+    <span className={`inline-flex shrink-0 items-center ${className}`}>
+      {compact ? (
+        <span className={`relative block h-12 w-12 overflow-hidden rounded-xl bg-white shadow-sm ${light ? 'ring-1 ring-white/20' : 'ring-1 ring-slate-200'}`}>
+          <img
+            src="/images/logo-conselho.jpeg"
+            alt={name}
+            className="absolute inset-0 h-full w-full scale-[1.38] object-contain"
+          />
+        </span>
+      ) : (
+        <span className={`relative block h-[58px] w-40 overflow-hidden rounded-xl bg-[#f4f4f4] sm:w-52 ${light ? 'shadow-lg shadow-slate-950/20 ring-1 ring-white/15' : ''}`}>
+          <img
+            src="/images/logo-conselho-texto.jpeg"
+            alt={name}
+            className="absolute left-1/2 top-1/2 h-auto w-full max-w-none -translate-x-1/2 -translate-y-1/2"
+          />
         </span>
       )}
-    </div>
+    </span>
   );
 }

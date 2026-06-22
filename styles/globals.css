@@ -5,21 +5,23 @@
 
 :root { color-scheme: light; }
 html { scroll-behavior: smooth; }
-body { margin: 0; font-family: Manrope, ui-sans-serif, system-ui, sans-serif; background: #f8fafc; color: #13213c; }
+body { margin: 0; overflow-x: hidden; font-family: Manrope, ui-sans-serif, system-ui, sans-serif; background: #f8fafc; color: #13213c; text-rendering: optimizeLegibility; }
 * { box-sizing: border-box; }
 a { color: inherit; text-decoration: none; }
 button, input, textarea, select { font: inherit; }
+::selection { background: #bfdbfe; color: #0b2f70; }
 
 @layer components {
   .container-app { @apply mx-auto w-full max-w-[1380px] px-5 sm:px-8 lg:px-12; }
-  .btn-primary { @apply inline-flex items-center gap-2 rounded-lg bg-blue-600 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-blue-600/15 transition hover:-translate-y-0.5 hover:bg-blue-700; }
-  .btn-secondary { @apply inline-flex items-center gap-2 rounded-lg border border-blue-300 bg-white px-5 py-3 text-sm font-bold text-blue-700 transition hover:bg-blue-50; }
-  .card { @apply rounded-2xl border border-slate-200/80 bg-white shadow-sm; }
+  .btn-primary { @apply inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-blue-600/15 transition hover:-translate-y-0.5 hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-200; }
+  .btn-secondary { @apply inline-flex items-center gap-2 rounded-xl border border-blue-300 bg-white px-5 py-3 text-sm font-bold text-blue-700 transition hover:-translate-y-0.5 hover:bg-blue-50 focus:outline-none focus:ring-4 focus:ring-blue-100; }
+  .card { @apply rounded-2xl border border-slate-200/80 bg-white shadow-sm shadow-slate-900/[.035]; }
   .eyebrow { @apply text-xs font-extrabold uppercase tracking-[0.16em] text-emerald-600; }
   .page-title { @apply text-3xl font-extrabold tracking-tight text-[#11213e] sm:text-4xl; }
   .section-title { @apply text-2xl font-extrabold tracking-tight text-[#11213e]; }
   .form-input { @apply w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-100; }
   .status { @apply inline-flex rounded-full px-2.5 py-1 text-[11px] font-bold; }
+  .section-kicker { @apply text-xs font-extrabold uppercase tracking-[0.16em] text-blue-600; }
 }
 
 .hero-photo {
