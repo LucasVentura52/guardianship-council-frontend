@@ -4,7 +4,7 @@ Site público e painel administrativo responsivos, construídos com Next.js, Typ
 
 ```bash
 npm install
-copy .env.example .env.local
+cp .env.example .env.local
 npm run dev
 ```
 
@@ -17,3 +17,9 @@ Rotas principais:
 - `/admin`: dashboard e gestão
 
 Para produção, execute `npm run build` e `npm run start`.
+
+## Produção
+
+- Domínio público: `https://siteconselhotutelar.vercel.app/`
+- API consumida: `https://guardianshipcouncil.x10.mx/api`
+- Use `.env.production.example` como referência para o ambiente da Vercel
