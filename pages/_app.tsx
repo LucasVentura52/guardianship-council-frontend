@@ -23,7 +23,7 @@ export default function App({ Component, pageProps, siteConfig }: Props) {
         sessionStorage.setItem(key, String(Date.now()));
       } catch {}
 
-      const base = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+      const base = getApiBaseUrl();
       void fetch(`${base}/visitas`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
