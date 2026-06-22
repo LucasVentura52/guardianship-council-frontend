@@ -23,7 +23,7 @@ export default function Brand({
           />
         </span>
       ) : (
-        <span className={`relative block h-[58px] w-44 overflow-hidden rounded-xl bg-[#f4f4f4] sm:w-52 ${light ? 'shadow-lg shadow-slate-950/20 ring-1 ring-white/15' : ''}`}>
+        <span className={`relative block h-[58px] w-40 overflow-hidden rounded-xl bg-[#f4f4f4] sm:w-52 ${light ? 'shadow-lg shadow-slate-950/20 ring-1 ring-white/15' : ''}`}>
           <img
             src="/images/logo-conselho-texto.jpeg"
             alt={name}

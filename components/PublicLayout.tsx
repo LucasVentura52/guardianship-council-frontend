@@ -2,6 +2,7 @@ import Head from 'next/head';
 import { ReactNode } from 'react';
 import Footer from './Footer';
 import Header from './Header';
+import EmergencyBar from './EmergencyBar';
 import { useSiteConfig } from '../lib/site-config';
 
 export default function PublicLayout({ children, title = 'Conselho Tutelar' }: { children: ReactNode; title?: string }) {
@@ -14,8 +15,10 @@ export default function PublicLayout({ children, title = 'Conselho Tutelar' }: {
         <meta name="description" content={config.descricao || 'Informação, orientação e proteção dos direitos de crianças e adolescentes.'} />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
+      <div id="topo" />
+      <EmergencyBar />
       <Header />
-      <main>{children}</main>
+      <main id="conteudo">{children}</main>
       <Footer />
     </>
   );
