@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { ReactNode, useEffect, useState } from 'react';
+import { ReactNode, useEffect, useLayoutEffect, useState } from 'react';
 import Brand from './Brand';
 import Icon from './Icon';
 import api from '../lib/api';
@@ -19,31 +19,74 @@ const nav = [
   ['chart', 'Relatórios', '/admin/relatorios'],
 ] as const;
 
+type AdminUser = {
+  name: string;
+  email: string;
+};
+
+let cachedToken: string | null = null;
+let cachedUser: AdminUser | null = null;
+let validationPromise: Promise<AdminUser> | null = null;
+
+const useIsomorphicLayoutEffect = typeof window !== 'undefined' ? useLayoutEffect : useEffect;
+
 export default function AdminLayout({ children, title, action }: { children: ReactNode; title: string; action?: ReactNode }) {
   const router = useRouter();
   const [menu, setMenu] = useState(false);
   const [ready, setReady] = useState(false);
-  const [user, setUser] = useState({ name: 'Administrador', email: '' });
+  const [user, setUser] = useState<AdminUser>({ name: 'Administrador', email: '' });
 
-  useEffect(() => {
-    if (!localStorage.getItem('admin_token')) {
+  useIsomorphicLayoutEffect(() => {
+    const token = localStorage.getItem('admin_token');
+
+    if (!token) {
+      cachedToken = null;
+      cachedUser = null;
       void router.replace('/admin/login');
       return;
     }
-    api.get('/admin/usuario')
-      .then(({ data }) => {
-        setUser(data.data);
+
+    if (cachedToken === token && cachedUser) {
+      setUser(cachedUser);
+      setReady(true);
+      return;
+    }
+
+    let cancelled = false;
+
+    const ensureUser = validationPromise || (validationPromise = api.get('/admin/usuario').then(({ data }) => data.data));
+
+    void ensureUser
+      .then((adminUser) => {
+        if (cancelled) return;
+        cachedToken = token;
+        cachedUser = adminUser;
+        setUser(adminUser);
         setReady(true);
       })
       .catch(() => {
+        if (cancelled) return;
         localStorage.removeItem('admin_token');
+        cachedToken = null;
+        cachedUser = null;
         void router.replace('/admin/login');
+      })
+      .finally(() => {
+        if (validationPromise === ensureUser) {
+          validationPromise = null;
+        }
       });
+
+    return () => {
+      cancelled = true;
+    };
   }, [router]);
 
   async function logout() {
     try { await api.post('/admin/logout'); } catch {}
     localStorage.removeItem('admin_token');
+    cachedToken = null;
+    cachedUser = null;
     await router.push('/admin/login');
   }
 
