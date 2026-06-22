@@ -2,6 +2,7 @@ import { GetServerSideProps } from 'next';
 import Link from 'next/link';
 import Icon from '../../components/Icon';
 import PublicLayout from '../../components/PublicLayout';
+import { getApiBaseUrl } from '../../lib/api-base';
 import { useSiteConfig } from '../../lib/site-config';
 
 type Campanha = { titulo: string; descricao_curta: string; conteudo: string; imagem?: string; data_publicacao?: string };
@@ -15,7 +16,7 @@ export default function DetalheCampanha({ campanha }: { campanha: Campanha }) {
 }
 
 export const getServerSideProps: GetServerSideProps = async ({ params }) => {
-  const base = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+  const base = getApiBaseUrl();
   try {
     const response = await fetch(`${base}/campanhas/${params?.slug}`);
     if (!response.ok) return { notFound: true };

@@ -1,5 +1,6 @@
 import { GetServerSideProps } from 'next';
 import type Icon from '../components/Icon';
+import { getApiBaseUrl } from './api-base';
 
 export type InstitutionalPageData = {
   id: number;
@@ -13,7 +14,7 @@ export type InstitutionalPageData = {
 
 export function institutionalPageProps(slug: string): GetServerSideProps {
   return async () => {
-    const base = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+    const base = getApiBaseUrl();
     try {
       const response = await fetch(`${base}/paginas/${slug}`);
       if (!response.ok) return { notFound: true };

@@ -2,6 +2,7 @@ import { GetServerSideProps } from 'next';
 import Link from 'next/link';
 import Icon from '../components/Icon';
 import PublicLayout from '../components/PublicLayout';
+import { getApiBaseUrl } from '../lib/api-base';
 
 type Campanha = {
   id: number;
@@ -144,7 +145,7 @@ export default function Home({ campanhas, noticias, telefones, configuracoes, pa
 }
 
 export const getServerSideProps: GetServerSideProps<HomeData> = async () => {
-  const base = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+  const base = getApiBaseUrl();
 
   try {
     const response = await fetch(`${base}/home`);

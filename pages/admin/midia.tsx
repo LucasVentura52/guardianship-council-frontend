@@ -1,6 +1,7 @@
 import { ChangeEvent, useEffect, useRef, useState } from 'react';
 import AdminLayout from '../../components/AdminLayout';
 import Icon from '../../components/Icon';
+import { getStorageBaseUrl } from '../../lib/api-base';
 import api, { apiError } from '../../lib/api';
 
 type Midia = { id: number; nome_original: string; arquivo: string; mime_type: string; tamanho: number; alt_text?: string };
@@ -35,7 +36,7 @@ export default function MidiaPage() {
     catch (error) { setMessage(apiError(error)); }
   }
 
-  const storageBase = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api').replace(/\/api\/?$/, '/storage/');
+  const storageBase = getStorageBaseUrl();
   return <AdminLayout title="Biblioteca de Mídia" action={<><input ref={input} className="hidden" type="file" accept="image/*" onChange={upload} /><button className="btn-primary" onClick={() => input.current?.click()}><Icon name="plus" />Enviar imagem</button></>}>
     {message && <p className="mb-5 rounded-xl bg-blue-50 p-4 text-sm text-blue-800">{message}</p>}
     <div className="card p-6"><div className="grid gap-5 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">

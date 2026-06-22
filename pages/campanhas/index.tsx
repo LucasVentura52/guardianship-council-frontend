@@ -3,6 +3,7 @@ import Link from 'next/link';
 import Icon from '../../components/Icon';
 import PageHero from '../../components/PageHero';
 import PublicLayout from '../../components/PublicLayout';
+import { getApiBaseUrl } from '../../lib/api-base';
 
 type Campanha = { id: number; slug: string; titulo: string; descricao_curta: string; data_publicacao?: string; imagem?: string };
 
@@ -14,7 +15,7 @@ export default function Campanhas({ items }: { items: Campanha[] }) {
 }
 
 export const getServerSideProps: GetServerSideProps = async () => {
-  const base = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+  const base = getApiBaseUrl();
   try {
     const response = await fetch(`${base}/campanhas`);
     const data = response.ok ? await response.json() : { data: [] };

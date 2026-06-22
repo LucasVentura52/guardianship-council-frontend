@@ -1,6 +1,7 @@
 import { GetServerSideProps } from 'next';
 import Link from 'next/link';
 import PublicLayout from '../../components/PublicLayout';
+import { getApiBaseUrl } from '../../lib/api-base';
 
 type Noticia = { titulo: string; resumo: string; conteudo: string; imagem?: string; data_publicacao?: string };
 
@@ -9,7 +10,7 @@ export default function DetalheNoticia({ noticia }: { noticia: Noticia }) {
 }
 
 export const getServerSideProps: GetServerSideProps = async ({ params }) => {
-  const base = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+  const base = getApiBaseUrl();
   try {
     const response = await fetch(`${base}/noticias/${params?.slug}`);
     if (!response.ok) return { notFound: true };

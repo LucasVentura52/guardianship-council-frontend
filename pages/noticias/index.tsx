@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import Icon from '../../components/Icon';
 import PageHero from '../../components/PageHero';
 import PublicLayout from '../../components/PublicLayout';
+import { getApiBaseUrl } from '../../lib/api-base';
 
 type Noticia = { id: number; slug: string; titulo: string; resumo: string; data_publicacao?: string; imagem?: string };
 
@@ -17,7 +18,7 @@ export default function Noticias({ items }: { items: Noticia[] }) {
 }
 
 export const getServerSideProps: GetServerSideProps = async () => {
-  const base = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+  const base = getApiBaseUrl();
   try {
     const response = await fetch(`${base}/noticias`);
     const data = response.ok ? await response.json() : { data: [] };
