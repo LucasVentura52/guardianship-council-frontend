@@ -2,6 +2,7 @@ import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import Brand from '../../components/Brand';
+import { useAdminFeedback } from '../../components/AdminFeedback';
 import Icon from '../../components/Icon';
 import api, { apiError } from '../../lib/api';
 
@@ -9,6 +10,7 @@ export default function Login() {
   const router = useRouter();
   const [erro, setErro] = useState('');
   const [loading, setLoading] = useState(false);
+  const feedback = useAdminFeedback();
 
   async function entrar(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -19,6 +21,7 @@ export default function Login() {
     try {
       const { data } = await api.post('/login', Object.fromEntries(form));
       localStorage.setItem('admin_token', data.token);
+      feedback.success('Login realizado com sucesso.');
       await router.push('/admin');
     } catch (error) {
       setErro(apiError(error, 'Credenciais inválidas ou API indisponível.'));
@@ -40,7 +43,7 @@ export default function Login() {
           <label className="text-sm font-bold">Senha<input className="form-input mt-2" name="password" type="password" autoComplete="current-password" required /></label>
           <div className="text-right"><Link href="/admin/esqueci-senha" className="text-sm font-bold text-blue-600 hover:text-blue-700">Esqueci minha senha</Link></div>
           {erro && <p className="rounded-lg bg-rose-50 p-3 text-sm text-rose-700">{erro}</p>}
-          <button className="btn-primary mt-2 justify-center disabled:opacity-60" type="submit" disabled={loading}><Icon name="logout" /> {loading ? 'Entrando...' : 'Entrar'}</button>
+          <button className="btn-primary mt-2 justify-center disabled:cursor-not-allowed disabled:opacity-60" type="submit" disabled={loading}><span className="inline-flex h-4 w-4 items-center justify-center">{loading ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" /> : <Icon name="logout" size={16} />}</span> {loading ? 'Entrando...' : 'Entrar'}</button>
         </form>
         <p className="mt-6 text-center text-xs text-slate-400">Acesso restrito a administradores autorizados.</p>
       </div>

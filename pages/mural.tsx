@@ -2,6 +2,7 @@ import { FormEvent, useEffect, useState } from 'react';
 import Icon from '../components/Icon';
 import PageHero from '../components/PageHero';
 import PublicLayout from '../components/PublicLayout';
+import { Skeleton } from '../components/Skeleton';
 import api, { apiError } from '../lib/api';
 
 type Publicacao = { id: number; nome: string; assunto: string; mensagem: string; created_at?: string };
@@ -11,11 +12,16 @@ export default function Mural() {
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(false);
   const [publicacoes, setPublicacoes] = useState<Publicacao[]>([]);
+  const [loadingPublicacoes, setLoadingPublicacoes] = useState(true);
 
   useEffect(() => {
+    let active = true;
+    setLoadingPublicacoes(true);
     api.get('/sugestoes-aprovadas')
-      .then(({ data }) => setPublicacoes(data.data || []))
-      .catch(() => setPublicacoes([]));
+      .then(({ data }) => { if (active) setPublicacoes(data.data || []); })
+      .catch(() => { if (active) setPublicacoes([]); })
+      .finally(() => { if (active) setLoadingPublicacoes(false); });
+    return () => { active = false; };
   }, []);
 
   async function enviar(event: FormEvent<HTMLFormElement>) {
@@ -71,8 +77,24 @@ export default function Mural() {
             <span className="rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700">{publicacoes.length} publicadas</span>
           </div>
           <div className="mt-7 grid gap-4">
-            {publicacoes.length === 0 && <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center"><Icon name="message" size={32} className="mx-auto text-slate-300" /><p className="mt-4 text-sm text-slate-500">Ainda não há sugestões aprovadas. Você pode enviar a primeira.</p></div>}
-            {publicacoes.map(publicacao => (
+            {loadingPublicacoes && Array.from({ length: 3 }).map((_, index) => (
+              <article className="card p-6" key={index}>
+                <div className="flex items-start gap-4">
+                  <Skeleton className="h-11 w-11 rounded-full bg-slate-200" />
+                  <div className="min-w-0 flex-1 space-y-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <Skeleton className="h-4 w-32 bg-slate-200" />
+                      <Skeleton className="h-3 w-20 bg-slate-200" />
+                    </div>
+                    <Skeleton className="h-3 w-28 bg-slate-200" />
+                  </div>
+                </div>
+                <Skeleton className="mt-5 h-20 w-full bg-slate-200" />
+                <Skeleton className="mt-5 h-6 w-32 rounded-full bg-slate-200" />
+              </article>
+            ))}
+            {!loadingPublicacoes && publicacoes.length === 0 && <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center"><Icon name="message" size={32} className="mx-auto text-slate-300" /><p className="mt-4 text-sm text-slate-500">Ainda não há sugestões aprovadas. Você pode enviar a primeira.</p></div>}
+            {!loadingPublicacoes && publicacoes.map(publicacao => (
               <article className="card p-6 transition hover:border-blue-200 hover:shadow-md" key={publicacao.id}>
                 <div className="flex items-start gap-4">
                   <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-gradient-to-br from-blue-100 to-emerald-100 font-extrabold text-blue-700">{publicacao.nome[0]?.toUpperCase()}</span>

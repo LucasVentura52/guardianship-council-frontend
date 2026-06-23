@@ -2,31 +2,29 @@ import { FormEvent, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import Brand from '../../components/Brand';
+import { useAdminFeedback } from '../../components/AdminFeedback';
 import Icon from '../../components/Icon';
 import api, { apiError } from '../../lib/api';
 
 export default function RedefinirSenha() {
   const router = useRouter();
-  const [message, setMessage] = useState('');
-  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const feedback = useAdminFeedback();
   const token = typeof router.query.token === 'string' ? router.query.token : '';
   const email = typeof router.query.email === 'string' ? router.query.email : '';
   const invalidLink = router.isReady && (!token || !email);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setMessage('');
-    setError('');
     setLoading(true);
 
     try {
       const form = Object.fromEntries(new FormData(event.currentTarget));
-      const { data } = await api.post('/redefinir-senha', { ...form, token, email });
-      setMessage(data.message);
+      await api.post('/redefinir-senha', { ...form, token, email });
+      feedback.success('Senha redefinida com sucesso.');
       window.setTimeout(() => void router.push('/admin/login'), 1800);
     } catch (requestError) {
-      setError(apiError(requestError, 'Não foi possível redefinir a senha.'));
+      feedback.error(apiError(requestError, 'Não foi possível redefinir a senha.'));
     } finally {
       setLoading(false);
     }
@@ -50,9 +48,7 @@ export default function RedefinirSenha() {
             <label className="text-sm font-bold">E-mail<input className="form-input mt-2 bg-slate-50" value={email} readOnly /></label>
             <label className="text-sm font-bold">Nova senha<input className="form-input mt-2" name="password" type="password" minLength={8} autoComplete="new-password" required /></label>
             <label className="text-sm font-bold">Confirmar nova senha<input className="form-input mt-2" name="password_confirmation" type="password" minLength={8} autoComplete="new-password" required /></label>
-            {message && <p className="rounded-lg bg-emerald-50 p-3 text-sm text-emerald-700">{message}</p>}
-            {error && <p className="rounded-lg bg-rose-50 p-3 text-sm text-rose-700">{error}</p>}
-            <button className="btn-primary mt-2 justify-center disabled:opacity-60" type="submit" disabled={loading || !router.isReady}><Icon name="check" />{loading ? 'Salvando...' : 'Redefinir senha'}</button>
+            <button className="btn-primary mt-2 justify-center disabled:cursor-not-allowed disabled:opacity-60" type="submit" disabled={loading || !router.isReady}><span className="inline-flex h-4 w-4 items-center justify-center">{loading ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" /> : <Icon name="check" size={16} />}</span>{loading ? 'Salvando...' : 'Redefinir senha'}</button>
           </form>
         )}
       </div>

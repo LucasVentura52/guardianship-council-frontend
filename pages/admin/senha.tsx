@@ -1,28 +1,26 @@
 import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/router';
 import AdminLayout from '../../components/AdminLayout';
+import { useAdminFeedback } from '../../components/AdminFeedback';
 import Icon from '../../components/Icon';
 import api, { apiError } from '../../lib/api';
 
 export default function Senha() {
   const router = useRouter();
-  const [message, setMessage] = useState('');
-  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const feedback = useAdminFeedback();
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setMessage('');
-    setError('');
     setLoading(true);
 
     try {
-      const { data } = await api.put('/admin/senha', Object.fromEntries(new FormData(event.currentTarget)));
-      setMessage(data.message);
+      await api.put('/admin/senha', Object.fromEntries(new FormData(event.currentTarget)));
+      feedback.success('Senha alterada com sucesso.');
       localStorage.removeItem('admin_token');
       window.setTimeout(() => void router.push('/admin/login'), 1800);
     } catch (requestError) {
-      setError(apiError(requestError, 'Não foi possível alterar a senha.'));
+      feedback.error(apiError(requestError, 'Não foi possível alterar a senha.'));
     } finally {
       setLoading(false);
     }
@@ -41,9 +39,7 @@ export default function Senha() {
           <label className="text-sm font-bold">Confirmar nova senha<input className="form-input mt-2" name="password_confirmation" type="password" minLength={8} autoComplete="new-password" required /></label>
         </div>
         <p className="mt-4 text-xs text-slate-500">A nova senha deve ter ao menos 8 caracteres, incluindo letras maiúsculas, minúsculas e números.</p>
-        {message && <p className="mt-5 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-700">{message}</p>}
-        {error && <p className="mt-5 rounded-lg bg-rose-50 p-3 text-sm text-rose-700">{error}</p>}
-        <button className="btn-primary mt-6 disabled:opacity-60" type="submit" disabled={loading}><Icon name="check" />{loading ? 'Alterando...' : 'Alterar senha'}</button>
+        <button className="btn-primary mt-6 disabled:cursor-not-allowed disabled:opacity-60" type="submit" disabled={loading}><span className="inline-flex h-4 w-4 items-center justify-center">{loading ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" /> : <Icon name="check" size={16} />}</span>{loading ? 'Alterando...' : 'Alterar senha'}</button>
       </form>
     </AdminLayout>
   );

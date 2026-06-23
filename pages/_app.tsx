@@ -2,6 +2,7 @@ import NextApp, { AppContext, AppProps } from 'next/app';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
+import { AdminFeedbackProvider } from '../components/AdminFeedback';
 import { SiteConfig, SiteConfigProvider } from '../lib/site-config';
 import { getApiBaseUrl } from '../lib/api-base';
 import '../styles/globals.css';
@@ -38,13 +39,15 @@ export default function App({ Component, pageProps, siteConfig }: Props) {
   }, [router.asPath, router.events, router.isReady]);
 
   return (
-    <SiteConfigProvider config={siteConfig}>
-      <Head>
-        <link rel="icon" type="image/jpeg" href="/images/logo-conselho.jpeg" />
-        <link rel="apple-touch-icon" href="/images/logo-conselho.jpeg" />
-      </Head>
-      <Component {...pageProps} />
-    </SiteConfigProvider>
+    <AdminFeedbackProvider>
+      <SiteConfigProvider config={siteConfig}>
+        <Head>
+          <link rel="icon" type="image/jpeg" href="/images/logo-conselho.jpeg" />
+          <link rel="apple-touch-icon" href="/images/logo-conselho.jpeg" />
+        </Head>
+        <Component {...pageProps} />
+      </SiteConfigProvider>
+    </AdminFeedbackProvider>
   );
 }
 

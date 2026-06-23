@@ -1,6 +1,8 @@
 import { FormEvent, useCallback, useEffect, useState } from 'react';
 import AdminLayout from './AdminLayout';
+import { useAdminFeedback } from './AdminFeedback';
 import Icon from './Icon';
+import { Skeleton } from './Skeleton';
 import api, { apiError } from '../lib/api';
 
 type Field = {
@@ -33,7 +35,8 @@ export default function AdminResourcePage({
   const [editing, setEditing] = useState<Item | null>(null);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [message, setMessage] = useState('');
+  const [saving, setSaving] = useState(false);
+  const feedback = useAdminFeedback();
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -41,17 +44,16 @@ export default function AdminResourcePage({
       const { data } = await api.get(`/admin/${endpoint}`);
       setItems(data.data || []);
     } catch (error) {
-      setMessage(apiError(error, `Não foi possível carregar ${title.toLowerCase()}.`));
+      feedback.error(apiError(error, `Não foi possível carregar ${title.toLowerCase()}.`));
     } finally {
       setLoading(false);
     }
-  }, [endpoint, title]);
+  }, [endpoint, feedback, title]);
 
   useEffect(() => { void load(); }, [load]);
 
   function showForm(item: Item | null = null) {
     setEditing(item);
-    setMessage('');
     setOpen(true);
   }
 
@@ -59,6 +61,7 @@ export default function AdminResourcePage({
     event.preventDefault();
     const form = new FormData(event.currentTarget);
     form.set('destaque', form.get('destaque') ? '1' : '0');
+    setSaving(true);
 
     try {
       if (editing) {
@@ -72,10 +75,12 @@ export default function AdminResourcePage({
         });
       }
       setOpen(false);
-      setMessage('Alterações salvas com sucesso.');
+      feedback.success('Alterações salvas com sucesso.');
       await load();
     } catch (error) {
-      setMessage(apiError(error));
+      feedback.error(apiError(error));
+    } finally {
+      setSaving(false);
     }
   }
 
@@ -83,33 +88,42 @@ export default function AdminResourcePage({
     if (!window.confirm(`Excluir "${item.titulo}"?`)) return;
     try {
       await api.delete(`/admin/${endpoint}/${item.id}`);
-      setMessage('Registro excluído com sucesso.');
+      feedback.success('Registro excluído com sucesso.');
       await load();
     } catch (error) {
-      setMessage(apiError(error));
+      feedback.error(apiError(error));
     }
   }
 
   return (
     <AdminLayout
       title={title}
-      action={<button className="btn-primary" onClick={() => showForm()}><Icon name="plus" />Novo registro</button>}
+      action={<button className="btn-primary" type="button" onClick={() => showForm()}><Icon name="plus" />Novo registro</button>}
     >
-      {message && <p className="mb-5 rounded-xl bg-blue-50 p-4 text-sm text-blue-800">{message}</p>}
       <div className="card overflow-x-auto">
         <table className="w-full min-w-[760px] text-left text-sm">
           <thead className="border-b bg-slate-50 text-xs uppercase text-slate-500">
             <tr><th className="px-6 py-4">Conteúdo</th><th className="px-6 py-4">Status</th><th className="px-6 py-4">Atualização</th><th className="px-6 py-4 text-right">Ações</th></tr>
           </thead>
           <tbody>
-            {loading && <tr><td className="px-6 py-10 text-center text-slate-500" colSpan={4}>Carregando...</td></tr>}
+            {loading && Array.from({ length: 5 }).map((_, index) => (
+              <tr className="border-b border-slate-100 last:border-0" key={index}>
+                <td className="px-6 py-4">
+                  <Skeleton className="h-4 w-44" />
+                  <Skeleton className="mt-3 h-3 w-[85%]" />
+                </td>
+                <td className="px-6 py-4"><Skeleton className="h-6 w-24 rounded-full" /></td>
+                <td className="px-6 py-4"><Skeleton className="h-4 w-28" /></td>
+                <td className="px-6 py-4"><div className="flex justify-end gap-2"><Skeleton className="h-9 w-9 rounded-lg" /><Skeleton className="h-9 w-9 rounded-lg" /></div></td>
+              </tr>
+            ))}
             {!loading && items.length === 0 && <tr><td className="px-6 py-10 text-center text-slate-500" colSpan={4}>Nenhum registro encontrado.</td></tr>}
-            {items.map((item) => (
+            {!loading && items.map((item) => (
               <tr className="border-b border-slate-100 last:border-0" key={item.id}>
                 <td className="px-6 py-4"><strong className="block">{item.titulo}</strong><small className="mt-1 block max-w-xl truncate text-slate-500">{item[descriptionField] || 'Sem descrição'}</small></td>
                 <td className="px-6 py-4"><span className={`status ${item.status === 'publicado' ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>{item.status}</span></td>
                 <td className="px-6 py-4 text-slate-500">{new Date(item.updated_at || item.created_at || Date.now()).toLocaleDateString('pt-BR')}</td>
-                <td className="px-6 py-4"><div className="flex justify-end gap-2"><button aria-label="Editar" className="grid h-9 w-9 place-items-center rounded-lg border text-slate-500" onClick={() => showForm(item)}><Icon name="edit" size={16} /></button><button aria-label="Excluir" className="grid h-9 w-9 place-items-center rounded-lg border text-rose-500" onClick={() => remove(item)}><Icon name="trash" size={16} /></button></div></td>
+                <td className="px-6 py-4"><div className="flex justify-end gap-2"><button aria-label="Editar" type="button" className="grid h-9 w-9 place-items-center rounded-lg border text-slate-500" onClick={() => showForm(item)}><Icon name="edit" size={16} /></button><button aria-label="Excluir" type="button" className="grid h-9 w-9 place-items-center rounded-lg border text-rose-500" onClick={() => remove(item)}><Icon name="trash" size={16} /></button></div></td>
               </tr>
             ))}
           </tbody>
@@ -134,7 +148,7 @@ export default function AdminResourcePage({
                 </label>
               ))}
             </div>
-            <div className="mt-7 flex justify-end gap-3"><button type="button" className="btn-secondary" onClick={() => setOpen(false)}>Cancelar</button><button className="btn-primary" type="submit"><Icon name="check" />Salvar</button></div>
+            <div className="mt-7 flex justify-end gap-3"><button type="button" className="btn-secondary" onClick={() => setOpen(false)}>Cancelar</button><button className="btn-primary disabled:cursor-not-allowed disabled:opacity-60" type="submit" disabled={saving}><span className="inline-flex h-4 w-4 items-center justify-center">{saving ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" /> : <Icon name="check" size={16} />}</span>{saving ? 'Salvando...' : 'Salvar'}</button></div>
           </form>
         </div>
       )}

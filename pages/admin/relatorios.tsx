@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import AdminLayout from '../../components/AdminLayout';
 import Icon from '../../components/Icon';
+import { Skeleton } from '../../components/Skeleton';
 import api, { apiError } from '../../lib/api';
 
 type Resumo = Record<string, number>;
@@ -8,7 +9,15 @@ type Resumo = Record<string, number>;
 export default function Relatorios() {
   const [resumo, setResumo] = useState<Resumo>({});
   const [message, setMessage] = useState('');
-  useEffect(() => { api.get('/admin/dashboard').then(({ data }) => setResumo(data.resumo || {})).catch(error => setMessage(apiError(error))); }, []);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    let active = true;
+    api.get('/admin/dashboard')
+      .then(({ data }) => { if (active) setResumo(data.resumo || {}); })
+      .catch(error => { if (active) setMessage(apiError(error)); })
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, []);
 
   function exportCsv() {
     const rows = [['Indicador', 'Total'], ...Object.entries(resumo).map(([key, value]) => [key.split('_').join(' '), String(value)])];
@@ -21,9 +30,24 @@ export default function Relatorios() {
     URL.revokeObjectURL(url);
   }
 
-  return <AdminLayout title="Relatórios" action={<button className="btn-primary" onClick={exportCsv}><Icon name="chart" />Exportar CSV</button>}>
+  return <AdminLayout title="Relatórios" action={<button className="btn-primary disabled:cursor-not-allowed disabled:opacity-60" onClick={exportCsv} disabled={loading}><Icon name="chart" />{loading ? 'Carregando...' : 'Exportar CSV'}</button>}>
     {message && <p className="mb-5 rounded-xl bg-rose-50 p-4 text-sm text-rose-700">{message}</p>}
-    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">{Object.entries(resumo).map(([key, value]) => <article className="card p-6" key={key}><span className="text-xs font-bold uppercase text-slate-400">{key.split('_').join(' ')}</span><strong className="mt-2 block text-3xl font-extrabold">{value}</strong></article>)}</div>
-    <div className="card mt-5 p-6"><h2 className="font-extrabold">Resumo operacional</h2><p className="mt-3 text-sm leading-6 text-slate-600">Este relatório consolida os registros atuais da plataforma. Use a exportação CSV para análise acadêmica, prestação de contas ou acompanhamento periódico.</p></div>
+    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      {loading && Array.from({ length: 4 }).map((_, index) => <article className="card p-6" key={index}><Skeleton className="h-3 w-24 bg-slate-200" /><Skeleton className="mt-3 h-9 w-20 bg-slate-200" /></article>)}
+      {!loading && Object.entries(resumo).map(([key, value]) => <article className="card p-6" key={key}><span className="text-xs font-bold uppercase text-slate-400">{key.split('_').join(' ')}</span><strong className="mt-2 block text-3xl font-extrabold">{value}</strong></article>)}
+    </div>
+    <div className="card mt-5 p-6">
+      {loading ? (
+        <>
+          <Skeleton className="h-5 w-48 bg-slate-200" />
+          <Skeleton className="mt-4 h-4 w-full bg-slate-200" />
+          <Skeleton className="mt-2 h-4 w-[92%] bg-slate-200" />
+        </>
+      ) : (
+        <>
+          <h2 className="font-extrabold">Resumo operacional</h2><p className="mt-3 text-sm leading-6 text-slate-600">Este relatório consolida os registros atuais da plataforma. Use a exportação CSV para análise acadêmica, prestação de contas ou acompanhamento periódico.</p>
+        </>
+      )}
+    </div>
   </AdminLayout>;
 }

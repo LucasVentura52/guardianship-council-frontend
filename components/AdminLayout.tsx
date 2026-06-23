@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import { ReactNode, useEffect, useLayoutEffect, useState } from 'react';
 import Brand from './Brand';
 import Icon from './Icon';
+import { Skeleton } from './Skeleton';
 import api from '../lib/api';
 
 const nav = [
@@ -91,7 +92,60 @@ export default function AdminLayout({ children, title, action }: { children: Rea
   }
 
   if (!ready) {
-    return <div className="grid min-h-screen place-items-center bg-slate-50"><div className="grid justify-items-center gap-4 text-sm font-bold text-slate-500"><Brand compact />Validando acesso...</div></div>;
+    return (
+      <div className="min-h-screen bg-[#f4f7fb]">
+        <aside className="fixed inset-y-0 left-0 hidden w-64 bg-[#082754] p-5 text-white lg:block">
+          <Brand light />
+          <div className="mt-3 space-y-2">
+            <Skeleton className="h-3 w-36 bg-white/15" />
+            <Skeleton className="h-3 w-28 bg-white/15" />
+          </div>
+          <div className="mt-8 grid gap-2">
+            {Array.from({ length: 10 }).map((_, index) => (
+              <div className="flex items-center gap-3 rounded-lg px-4 py-3" key={index}>
+                <Skeleton className="h-5 w-5 rounded-md bg-white/15" />
+                <Skeleton className="h-4 flex-1 bg-white/15" />
+              </div>
+            ))}
+          </div>
+        </aside>
+        <div className="lg:pl-64">
+          <header className="flex h-[72px] items-center justify-between border-b border-slate-200 bg-white px-5 lg:px-8">
+            <Skeleton className="h-10 w-10 rounded-lg bg-slate-200" />
+            <div className="flex items-center gap-3">
+              <div className="text-right">
+                <Skeleton className="h-4 w-28 bg-slate-200" />
+                <Skeleton className="mt-2 h-3 w-36 bg-slate-200" />
+              </div>
+              <Skeleton className="h-10 w-10 rounded-full bg-slate-200" />
+            </div>
+          </header>
+          <main className="p-5 lg:p-8">
+            <div className="mb-7 flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <Skeleton className="h-7 w-56 bg-slate-200" />
+                <Skeleton className="mt-3 h-4 w-80 bg-slate-200" />
+              </div>
+              <Skeleton className="h-11 w-36 rounded-xl bg-slate-200" />
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+              {Array.from({ length: 4 }).map((_, index) => (
+                <article className="card p-6" key={index}>
+                  <div className="flex items-center gap-5">
+                    <Skeleton className="h-14 w-14 rounded-full bg-slate-200" />
+                    <div className="flex-1 space-y-2">
+                      <Skeleton className="h-3 w-24 bg-slate-200" />
+                      <Skeleton className="h-9 w-16 bg-slate-200" />
+                      <Skeleton className="h-3 w-20 bg-slate-200" />
+                    </div>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </main>
+        </div>
+      </div>
+    );
   }
   return <div className="min-h-screen bg-[#f4f7fb]">
     <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-[#082754] p-5 text-white transition lg:translate-x-0 ${menu ? 'translate-x-0' : '-translate-x-full'}`}>
