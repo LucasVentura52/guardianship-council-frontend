@@ -5,6 +5,7 @@ import Icon from '../../components/Icon';
 import PageHero from '../../components/PageHero';
 import PublicLayout from '../../components/PublicLayout';
 import { getApiBaseUrl } from '../../lib/api-base';
+import { resolvePublicImageUrl } from '../../lib/image-url';
 
 type Noticia = { id: number; slug: string; titulo: string; resumo: string; data_publicacao?: string; imagem?: string };
 
@@ -29,7 +30,7 @@ export default function Noticias({ items }: { items: Noticia[] }) {
           {filtered.length === 0 && <div className="col-span-full rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center"><Icon name="search" size={34} className="mx-auto text-slate-300" /><p className="mt-4 text-sm text-slate-500">Nenhuma notícia encontrada.</p></div>}
           {filtered.map((item, index) => (
             <Link href={`/noticias/${item.slug}`} className="card group overflow-hidden transition duration-300 hover:-translate-y-1 hover:shadow-xl" key={item.id}>
-              <div className="overflow-hidden">{item.imagem ? <img className="h-52 w-full object-cover transition duration-500 group-hover:scale-105" src={item.imagem} alt="" /> : <div className={`h-52 bg-gradient-to-br ${['from-blue-100 to-emerald-100', 'from-orange-100 to-amber-50', 'from-violet-100 to-blue-100'][index % 3]}`} />}</div>
+              <div className="overflow-hidden">{item.imagem ? <img className="h-52 w-full object-cover transition duration-500 group-hover:scale-105" src={resolvePublicImageUrl(item.imagem)} alt="" /> : <div className={`h-52 bg-gradient-to-br ${['from-blue-100 to-emerald-100', 'from-orange-100 to-amber-50', 'from-violet-100 to-blue-100'][index % 3]}`} />}</div>
               <div className="p-6">
                 <div className="flex items-center justify-between gap-3"><span className="status bg-blue-50 text-blue-700">Notícia</span><time className="text-[11px] text-slate-400">{item.data_publicacao ? new Date(item.data_publicacao).toLocaleDateString('pt-BR') : ''}</time></div>
                 <h2 className="mt-4 text-lg font-extrabold leading-7 transition group-hover:text-blue-700">{item.titulo}</h2>

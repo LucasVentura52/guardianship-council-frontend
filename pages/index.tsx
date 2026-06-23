@@ -6,6 +6,7 @@ import HomeOrientation from '../components/HomeOrientation';
 import Icon from '../components/Icon';
 import PublicLayout from '../components/PublicLayout';
 import { getApiBaseUrl } from '../lib/api-base';
+import { resolvePublicImageUrl } from '../lib/image-url';
 
 type Campanha = {
   id: number;
@@ -194,7 +195,7 @@ export default function Home({ campanhas, noticias, telefones, configuracoes, pa
               href={`/campanhas/${item.slug}`}
               key={item.id}
               className={`group flex min-h-64 flex-col justify-end overflow-hidden rounded-2xl bg-gradient-to-br ${coresCampanha[index % coresCampanha.length]} p-6 text-white shadow-md transition duration-300 hover:-translate-y-1 hover:shadow-2xl`}
-              style={item.imagem ? { backgroundImage: `linear-gradient(0deg, rgba(5,25,60,.92), rgba(5,25,60,.12)), url(${item.imagem})`, backgroundPosition: 'center', backgroundSize: 'cover' } : undefined}
+              style={item.imagem ? { backgroundImage: `linear-gradient(0deg, rgba(5,25,60,.92), rgba(5,25,60,.12)), url("${resolvePublicImageUrl(item.imagem)}")`, backgroundPosition: 'center', backgroundSize: 'cover' } : undefined}
             >
               <span className="text-[10px] font-extrabold uppercase tracking-[.16em] text-white/65">Campanha</span>
               <h3 className="mt-2 text-xl font-extrabold uppercase leading-tight">{item.titulo}</h3>
@@ -275,7 +276,7 @@ export default function Home({ campanhas, noticias, telefones, configuracoes, pa
           {noticias.length === 0 && <p className="col-span-full rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center text-sm text-slate-500">Nenhuma notícia publicada.</p>}
           {noticias.slice(0, 3).map((noticia, index) => (
             <Link href={`/noticias/${noticia.slug}`} key={noticia.id} className="card group overflow-hidden transition duration-300 hover:-translate-y-1 hover:shadow-xl">
-              {noticia.imagem ? <img src={noticia.imagem} alt="" className="h-52 w-full object-cover transition duration-500 group-hover:scale-105" /> : <div className={`h-52 bg-gradient-to-br ${['from-blue-100 to-emerald-100', 'from-amber-100 to-orange-100', 'from-violet-100 to-blue-100'][index % 3]}`} />}
+              {noticia.imagem ? <img src={resolvePublicImageUrl(noticia.imagem)} alt="" className="h-52 w-full object-cover transition duration-500 group-hover:scale-105" /> : <div className={`h-52 bg-gradient-to-br ${['from-blue-100 to-emerald-100', 'from-amber-100 to-orange-100', 'from-violet-100 to-blue-100'][index % 3]}`} />}
               <div className="p-6">
                 <div className="flex items-center justify-between"><span className="status bg-blue-50 text-blue-700">Notícia</span><span className="text-[11px] text-slate-400">{noticia.data_publicacao ? new Date(noticia.data_publicacao).toLocaleDateString('pt-BR') : ''}</span></div>
                 <h3 className="mt-4 text-lg font-extrabold leading-7 transition group-hover:text-blue-700">{noticia.titulo}</h3>

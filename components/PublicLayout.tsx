@@ -11,7 +11,7 @@ export default function PublicLayout({ children, title = 'Conselho Tutelar' }: {
   return (
     <>
       <Head>
-        <title>{title} | {siteName}</title>
+        <title>{`${title} | ${siteName}`}</title>
         <meta name="description" content={config.descricao || 'Informação, orientação e proteção dos direitos de crianças e adolescentes.'} />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>

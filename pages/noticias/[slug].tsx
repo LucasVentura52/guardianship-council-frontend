@@ -3,6 +3,7 @@ import Link from 'next/link';
 import Icon from '../../components/Icon';
 import PublicLayout from '../../components/PublicLayout';
 import { getApiBaseUrl } from '../../lib/api-base';
+import { resolvePublicImageUrl } from '../../lib/image-url';
 
 type Noticia = { titulo: string; resumo: string; conteudo: string; imagem?: string; data_publicacao?: string };
 
@@ -20,7 +21,7 @@ export default function DetalheNoticia({ noticia }: { noticia: Noticia }) {
           </div>
         </header>
         <div className="container-app max-w-5xl py-14">
-          {noticia.imagem && <img className="h-auto max-h-[560px] w-full rounded-3xl object-cover shadow-lg" src={noticia.imagem} alt="" />}
+          {noticia.imagem && <img className="h-auto max-h-[560px] w-full rounded-3xl object-cover shadow-lg" src={resolvePublicImageUrl(noticia.imagem)} alt="" />}
           <div className="mx-auto mt-10 max-w-3xl">
             <div className="whitespace-pre-line text-base leading-9 text-slate-700">{noticia.conteudo}</div>
             <div className="mt-12 flex flex-wrap items-center justify-between gap-4 border-t border-slate-200 pt-7">

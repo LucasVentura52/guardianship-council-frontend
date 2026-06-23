@@ -4,6 +4,7 @@ import Icon from '../../components/Icon';
 import PublicLayout from '../../components/PublicLayout';
 import { getApiBaseUrl } from '../../lib/api-base';
 import { useSiteConfig } from '../../lib/site-config';
+import { resolvePublicImageUrl } from '../../lib/image-url';
 
 type Campanha = { titulo: string; descricao_curta: string; conteudo: string; imagem?: string; data_publicacao?: string };
 
@@ -12,7 +13,7 @@ export default function DetalheCampanha({ campanha }: { campanha: Campanha }) {
 
   return (
     <PublicLayout title={campanha.titulo}>
-      <section className="relative overflow-hidden bg-gradient-to-br from-blue-800 to-cyan-600 text-white" style={campanha.imagem ? { backgroundImage: `linear-gradient(90deg, rgba(4,31,76,.97), rgba(4,40,90,.45)), url(${campanha.imagem})`, backgroundSize: 'cover', backgroundPosition: 'center' } : undefined}>
+      <section className="relative overflow-hidden bg-gradient-to-br from-blue-800 to-cyan-600 text-white" style={campanha.imagem ? { backgroundImage: `linear-gradient(90deg, rgba(4,31,76,.97), rgba(4,40,90,.45)), url("${resolvePublicImageUrl(campanha.imagem)}")`, backgroundSize: 'cover', backgroundPosition: 'center' } : undefined}>
         <div className="container-app relative py-20 lg:py-28">
           <Link href="/campanhas" className="mb-9 inline-flex items-center gap-2 text-sm font-bold text-white/75 transition hover:text-white"><span className="rotate-180"><Icon name="arrow" size={17} /></span>Voltar para campanhas</Link>
           <p className="text-xs font-extrabold uppercase tracking-[.18em] text-emerald-300">Campanha de conscientização</p>

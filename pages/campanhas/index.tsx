@@ -4,6 +4,7 @@ import Icon from '../../components/Icon';
 import PageHero from '../../components/PageHero';
 import PublicLayout from '../../components/PublicLayout';
 import { getApiBaseUrl } from '../../lib/api-base';
+import { resolvePublicImageUrl } from '../../lib/image-url';
 
 type Campanha = { id: number; slug: string; titulo: string; descricao_curta: string; data_publicacao?: string; imagem?: string };
 
@@ -22,7 +23,7 @@ export default function Campanhas({ items }: { items: Campanha[] }) {
             <Link href={`/campanhas/${item.slug}`} key={item.id} className="card group overflow-hidden transition duration-300 hover:-translate-y-1 hover:shadow-xl">
               <div
                 className={`flex min-h-64 flex-col justify-end overflow-hidden bg-gradient-to-br ${['from-blue-700 to-cyan-500', 'from-orange-600 to-amber-400', 'from-violet-700 to-blue-500'][index % 3]} p-7 text-white`}
-                style={item.imagem ? { backgroundImage: `linear-gradient(0deg, rgba(5,25,60,.88), rgba(5,25,60,.08)), url(${item.imagem})`, backgroundSize: 'cover', backgroundPosition: 'center' } : undefined}
+                style={item.imagem ? { backgroundImage: `linear-gradient(0deg, rgba(5,25,60,.88), rgba(5,25,60,.08)), url("${resolvePublicImageUrl(item.imagem)}")`, backgroundSize: 'cover', backgroundPosition: 'center' } : undefined}
               >
                 <span className="text-[10px] font-extrabold uppercase tracking-[.16em] text-white/65">Campanha de conscientização</span>
                 <h2 className="mt-2 text-2xl font-extrabold uppercase leading-tight">{item.titulo}</h2>
