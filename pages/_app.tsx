@@ -1,16 +1,21 @@
-import NextApp, { AppContext, AppProps } from 'next/app';
+import type { AppProps } from 'next/app';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { AdminFeedbackProvider } from '../components/AdminFeedback';
 import { SiteConfig, SiteConfigProvider } from '../lib/site-config';
 import { getApiBaseUrl } from '../lib/api-base';
 import '../styles/globals.css';
 
-type Props = AppProps & { siteConfig: SiteConfig };
+type PageProps = {
+  siteConfig?: SiteConfig;
+};
 
-export default function App({ Component, pageProps, siteConfig }: Props) {
+type Props = AppProps<PageProps>;
+
+export default function App({ Component, pageProps }: Props) {
   const router = useRouter();
+  const [siteConfig, setSiteConfig] = useState<SiteConfig>(pageProps.siteConfig || {});
 
   useEffect(() => {
     function track(url: string) {
@@ -38,6 +43,28 @@ export default function App({ Component, pageProps, siteConfig }: Props) {
     return () => router.events.off('routeChangeComplete', track);
   }, [router.asPath, router.events, router.isReady]);
 
+  useEffect(() => {
+    let active = true;
+
+    async function loadSiteConfig() {
+      try {
+        const response = await fetch(`${getApiBaseUrl()}/configuracoes`);
+        if (!response.ok) return;
+
+        const body = await response.json();
+        if (active) {
+          setSiteConfig(body.data || {});
+        }
+      } catch {}
+    }
+
+    void loadSiteConfig();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
   return (
     <AdminFeedbackProvider>
       <SiteConfigProvider config={siteConfig}>
@@ -50,19 +77,3 @@ export default function App({ Component, pageProps, siteConfig }: Props) {
     </AdminFeedbackProvider>
   );
 }
-
-App.getInitialProps = async (context: AppContext) => {
-  const appProps = await NextApp.getInitialProps(context);
-  const base = getApiBaseUrl();
-  let siteConfig: SiteConfig = {};
-
-  try {
-    const response = await fetch(`${base}/configuracoes`);
-    if (response.ok) {
-      const body = await response.json();
-      siteConfig = body.data || {};
-    }
-  } catch {}
-
-  return { ...appProps, siteConfig };
-};
