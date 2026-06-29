@@ -27,7 +27,7 @@ export default function Brand({
           <img
             src="/images/logo-conselho-texto.jpeg"
             alt={name}
-            className="absolute left-1/2 top-1/2 h-auto w-full max-w-none -translate-x-1/2 -translate-y-1/2"
+            className="absolute left-1/2 top-1/2 h-auto w-[90%] max-w-none -translate-x-1/2 -translate-y-1/2"
           />
         </span>
       )}
