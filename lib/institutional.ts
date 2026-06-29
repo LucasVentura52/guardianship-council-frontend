@@ -1,4 +1,3 @@
-import { GetServerSideProps } from 'next';
 import type Icon from '../components/Icon';
 import { getApiBaseUrl } from './api-base';
 
@@ -12,16 +11,14 @@ export type InstitutionalPageData = {
   conteudo: string;
 };
 
-export function institutionalPageProps(slug: string): GetServerSideProps {
-  return async () => {
-    const base = getApiBaseUrl();
-    try {
-      const response = await fetch(`${base}/paginas/${slug}`);
-      if (!response.ok) return { notFound: true };
-      const body = await response.json();
-      return { props: { pagina: body.data } };
-    } catch {
-      return { notFound: true };
-    }
-  };
+export async function fetchInstitutionalPage(slug: string) {
+  const base = getApiBaseUrl();
+  const response = await fetch(`${base}/paginas/${slug}`);
+
+  if (!response.ok) {
+    throw new Error('Conteudo indisponivel.');
+  }
+
+  const body = await response.json();
+  return body.data as InstitutionalPageData;
 }

@@ -5,6 +5,7 @@ import { useSiteConfig } from '../lib/site-config';
 import Icon from './Icon';
 import PageHero from './PageHero';
 import PublicLayout from './PublicLayout';
+import { Skeleton } from './Skeleton';
 
 type Section = { title: string; paragraphs: string[]; items: string[] };
 
@@ -41,22 +42,55 @@ function FaqSections({ sections }: { sections: Section[] }) {
   return <div className="grid gap-3">{sections.map((section, index) => <article className="card overflow-hidden" key={section.title}><button className="flex w-full items-center justify-between gap-5 p-6 text-left font-extrabold" onClick={() => setOpen(open === index ? -1 : index)}>{section.title}<Icon name="chevron" className={`shrink-0 transition ${open === index ? 'rotate-90 text-blue-600' : 'text-slate-400'}`} /></button>{open === index && <div className="border-t border-slate-100 px-6 py-5 text-sm leading-7 text-slate-600">{section.paragraphs.map(text => <p key={text}>{text}</p>)}</div>}</article>)}</div>;
 }
 
-export default function InstitutionalPage({ pagina }: { pagina: InstitutionalPageData }) {
-  const sections = parseSections(pagina.conteudo);
-  const isFaq = pagina.slug === 'faq';
-  const isContact = pagina.slug === 'como-acionar';
+export default function InstitutionalPage({
+  pagina,
+  loading = false,
+  error,
+  fallbackTitle,
+  fallbackDescription,
+  fallbackIcon = 'document',
+}: {
+  pagina?: InstitutionalPageData | null;
+  loading?: boolean;
+  error?: string | null;
+  fallbackTitle: string;
+  fallbackDescription: string;
+  fallbackIcon?: Parameters<typeof Icon>[0]['name'];
+}) {
+  const sections = parseSections(pagina?.conteudo || '');
+  const slug = pagina?.slug || '';
+  const isFaq = slug === 'faq';
+  const isContact = slug === 'como-acionar';
+  const title = pagina?.titulo || fallbackTitle;
+  const description = pagina?.resumo || fallbackDescription;
+  const eyebrow = pagina?.chamada || undefined;
+  const icon = pagina?.icone || fallbackIcon;
 
-  return <PublicLayout title={pagina.titulo}>
-    <PageHero eyebrow={pagina.chamada || undefined} title={pagina.titulo} description={pagina.resumo} icon={pagina.icone || 'document'} />
+  return <PublicLayout title={title}>
+    <PageHero eyebrow={eyebrow} title={title} description={description} icon={icon} />
     <section className={`container-app py-16 ${isContact ? 'grid gap-8 lg:grid-cols-[1.2fr_.8fr]' : 'max-w-5xl'}`}>
       <div>
-        {isFaq ? <FaqSections sections={sections} /> : <div className={`grid gap-5 ${pagina.slug === 'eca' ? 'md:grid-cols-3' : ''}`}>
+        {error && !loading && <p className="mb-5 rounded-xl bg-rose-50 p-4 text-sm text-rose-700">{error}</p>}
+        {loading ? (
+          <div className="grid gap-5">
+            {Array.from({ length: isFaq ? 4 : 3 }).map((_, index) => (
+              <article className="card p-7" key={index}>
+                <Skeleton className="h-4 w-12" />
+                <Skeleton className="mt-4 h-7 w-2/3" />
+                <Skeleton className="mt-5 h-4 w-full" />
+                <Skeleton className="mt-2 h-4 w-[92%]" />
+                <Skeleton className="mt-2 h-4 w-[80%]" />
+              </article>
+            ))}
+          </div>
+        ) : isFaq ? <FaqSections sections={sections} /> : <div className={`grid gap-5 ${slug === 'eca' ? 'md:grid-cols-3' : ''}`}>
           {sections.map((section, index) => <article className={`card p-7 transition hover:border-blue-200 hover:shadow-md ${section.items.length ? 'md:col-span-full' : ''}`} key={section.title}>
             <span className="text-sm font-extrabold text-blue-500">{String(index + 1).padStart(2, '0')}</span>
             <h2 className="mt-3 text-xl font-extrabold">{section.title}</h2>
             {section.paragraphs.map(text => <p className="mt-3 whitespace-pre-line text-sm leading-7 text-slate-600" key={text}>{text}</p>)}
             {section.items.length > 0 && <ul className="mt-5 grid gap-3 sm:grid-cols-2">{section.items.map(item => <li className="flex gap-3 rounded-xl bg-slate-50 p-3 text-sm text-slate-600" key={item}><Icon name="check" className="shrink-0 text-emerald-500" />{item}</li>)}</ul>}
           </article>)}
+          {!loading && !error && sections.length === 0 && <article className="card p-7 text-sm text-slate-500">Conteúdo indisponível no momento.</article>}
         </div>}
       </div>
       {isContact && <ContactCard />}

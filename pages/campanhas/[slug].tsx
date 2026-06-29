@@ -1,32 +1,81 @@
-import { GetServerSideProps } from 'next';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
+import { useEffect, useState } from 'react';
 import Icon from '../../components/Icon';
 import PublicLayout from '../../components/PublicLayout';
-import { getApiBaseUrl } from '../../lib/api-base';
+import { Skeleton } from '../../components/Skeleton';
 import { useSiteConfig } from '../../lib/site-config';
 import { resolvePublicImageUrl } from '../../lib/image-url';
+import { Campanha, fetchCampanha } from '../../lib/public-content';
 
-type Campanha = { titulo: string; descricao_curta: string; conteudo: string; imagem?: string; data_publicacao?: string };
-
-export default function DetalheCampanha({ campanha }: { campanha: Campanha }) {
+export default function DetalheCampanha() {
+  const router = useRouter();
   const config = useSiteConfig();
+  const slug = typeof router.query.slug === 'string' ? router.query.slug : '';
+  const [campanha, setCampanha] = useState<Campanha | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (!router.isReady || !slug) return;
+
+    let active = true;
+    setLoading(true);
+    fetchCampanha(slug)
+      .then((data) => {
+        if (!active) return;
+        setCampanha(data);
+        setError('');
+      })
+      .catch(() => {
+        if (!active) return;
+        setError('Não foi possível carregar esta campanha.');
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [router.isReady, slug]);
 
   return (
-    <PublicLayout title={campanha.titulo}>
-      <section className="relative overflow-hidden bg-gradient-to-br from-blue-800 to-cyan-600 text-white" style={campanha.imagem ? { backgroundImage: `linear-gradient(90deg, rgba(4,31,76,.97), rgba(4,40,90,.45)), url("${resolvePublicImageUrl(campanha.imagem)}")`, backgroundSize: 'cover', backgroundPosition: 'center' } : undefined}>
+    <PublicLayout title={campanha?.titulo || 'Campanha'}>
+      <section className="relative overflow-hidden bg-gradient-to-br from-blue-800 to-cyan-600 text-white" style={campanha?.imagem ? { backgroundImage: `linear-gradient(90deg, rgba(4,31,76,.97), rgba(4,40,90,.45)), url("${resolvePublicImageUrl(campanha.imagem)}")`, backgroundSize: 'cover', backgroundPosition: 'center' } : undefined}>
         <div className="container-app relative py-20 lg:py-28">
           <Link href="/campanhas" className="mb-9 inline-flex items-center gap-2 text-sm font-bold text-white/75 transition hover:text-white"><span className="rotate-180"><Icon name="arrow" size={17} /></span>Voltar para campanhas</Link>
           <p className="text-xs font-extrabold uppercase tracking-[.18em] text-emerald-300">Campanha de conscientização</p>
-          <h1 className="mt-4 max-w-4xl text-4xl font-extrabold leading-tight sm:text-6xl">{campanha.titulo}</h1>
-          <p className="mt-6 max-w-2xl text-lg leading-8 text-white/80">{campanha.descricao_curta}</p>
-          {campanha.data_publicacao && <p className="mt-6 flex items-center gap-2 text-xs font-bold text-white/60"><Icon name="calendar" size={15} />Publicada em {new Date(campanha.data_publicacao).toLocaleDateString('pt-BR')}</p>}
+          {loading ? (
+            <>
+              <Skeleton className="mt-4 h-16 w-full max-w-4xl bg-white/20" />
+              <Skeleton className="mt-6 h-6 w-full max-w-2xl bg-white/20" />
+              <Skeleton className="mt-2 h-6 w-3/4 max-w-2xl bg-white/20" />
+            </>
+          ) : (
+            <>
+              <h1 className="mt-4 max-w-4xl text-4xl font-extrabold leading-tight sm:text-6xl">{campanha?.titulo || 'Campanha indisponível'}</h1>
+              <p className="mt-6 max-w-2xl text-lg leading-8 text-white/80">{campanha?.descricao_curta || 'Não foi possível carregar os detalhes desta campanha.'}</p>
+              {campanha?.data_publicacao && <p className="mt-6 flex items-center gap-2 text-xs font-bold text-white/60"><Icon name="calendar" size={15} />Publicada em {new Date(campanha.data_publicacao).toLocaleDateString('pt-BR')}</p>}
+            </>
+          )}
         </div>
       </section>
       <article className="container-app grid gap-10 py-16 lg:grid-cols-[1fr_340px]">
         <div className="card p-7 sm:p-10">
           <p className="section-kicker">Sobre a campanha</p>
           <h2 className="section-title mt-2">Informação para compartilhar</h2>
-          <div className="mt-7 whitespace-pre-line text-base leading-8 text-slate-600">{campanha.conteudo}</div>
+          {error && !loading && <p className="mt-7 rounded-xl bg-rose-50 p-4 text-sm text-rose-700">{error}</p>}
+          {loading ? (
+            <>
+              <Skeleton className="mt-7 h-5 w-full" />
+              <Skeleton className="mt-3 h-5 w-[95%]" />
+              <Skeleton className="mt-3 h-5 w-[90%]" />
+              <Skeleton className="mt-3 h-5 w-[85%]" />
+            </>
+          ) : (
+            <div className="mt-7 whitespace-pre-line text-base leading-8 text-slate-600">{campanha?.conteudo || 'Conteúdo indisponível no momento.'}</div>
+          )}
         </div>
         <aside className="grid h-fit gap-5 lg:sticky lg:top-28">
           <div className="card p-6"><span className="grid h-11 w-11 place-items-center rounded-xl bg-emerald-50 text-emerald-600"><Icon name="phone" /></span><h3 className="mt-5 font-extrabold">Precisa de ajuda?</h3><p className="mt-3 text-sm leading-7 text-slate-600">{config.disque_100_texto || 'O Disque 100 recebe denúncias gratuitamente, 24 horas por dia.'}</p><Link href="/como-acionar" className="btn-primary mt-5 w-full justify-center"><Icon name="phone" /> Como acionar</Link></div>
@@ -36,15 +85,3 @@ export default function DetalheCampanha({ campanha }: { campanha: Campanha }) {
     </PublicLayout>
   );
 }
-
-export const getServerSideProps: GetServerSideProps = async ({ params }) => {
-  const base = getApiBaseUrl();
-  try {
-    const response = await fetch(`${base}/campanhas/${params?.slug}`);
-    if (!response.ok) return { notFound: true };
-    const body = await response.json();
-    return { props: { campanha: body.data } };
-  } catch {
-    return { notFound: true };
-  }
-};

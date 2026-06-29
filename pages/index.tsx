@@ -1,54 +1,12 @@
-import { GetServerSideProps } from 'next';
 import Link from 'next/link';
-import type { ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import HomeFaq from '../components/HomeFaq';
 import HomeOrientation from '../components/HomeOrientation';
 import Icon from '../components/Icon';
 import PublicLayout from '../components/PublicLayout';
-import { getApiBaseUrl } from '../lib/api-base';
+import { Skeleton } from '../components/Skeleton';
 import { resolvePublicImageUrl } from '../lib/image-url';
-
-type Campanha = {
-  id: number;
-  slug: string;
-  titulo: string;
-  descricao_curta: string;
-  imagem?: string | null;
-};
-
-type Noticia = {
-  id: number;
-  slug: string;
-  titulo: string;
-  resumo: string;
-  imagem?: string | null;
-  data_publicacao?: string | null;
-};
-
-type Telefone = {
-  id: number;
-  titulo: string;
-  telefone: string;
-  descricao?: string | null;
-};
-
-type Sugestao = {
-  id: number;
-  nome: string;
-  assunto: string;
-  mensagem: string;
-  created_at?: string | null;
-};
-
-type HomeData = {
-  campanhas: Campanha[];
-  noticias: Noticia[];
-  telefones: Telefone[];
-  configuracoes: Record<string, string | null>;
-  pagina_como_acionar?: { conteudo: string } | null;
-  faq_conteudo?: string | null;
-  sugestoes: Sugestao[];
-};
+import { fetchHomeData, HomeData } from '../lib/public-content';
 
 const atalhos = [
   ['shield', 'Conheça seus direitos', 'Entenda as garantias previstas no ECA.', '/direitos', 'bg-blue-50 text-blue-600'],
@@ -117,12 +75,49 @@ function SectionTitle({ kicker, title, text, action }: { kicker: string; title: 
   );
 }
 
-export default function Home({ campanhas, noticias, telefones, configuracoes, pagina_como_acionar, faq_conteudo, sugestoes }: HomeData) {
+const initialHomeData: HomeData = {
+  campanhas: [],
+  noticias: [],
+  telefones: [],
+  configuracoes: {},
+  pagina_como_acionar: null,
+  faq_conteudo: null,
+  sugestoes: [],
+};
+
+export default function Home() {
+  const [data, setData] = useState<HomeData>(initialHomeData);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const { campanhas, noticias, telefones, configuracoes, pagina_como_acionar, faq_conteudo, sugestoes } = data;
+
+  useEffect(() => {
+    let active = true;
+    setLoading(true);
+    fetchHomeData()
+      .then((nextData) => {
+        if (!active) return;
+        setData(nextData);
+        setError('');
+      })
+      .catch(() => {
+        if (!active) return;
+        setError('Não foi possível carregar os conteúdos da página inicial agora.');
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
   const disque100 = telefones.find(item => item.telefone.replace(/\D/g, '') === '100');
   const telefoneConselho = configuracoes.telefone || telefones.find(item => item.titulo.toLowerCase().includes('conselho'))?.telefone;
   const motivosAcionamento = listItems(pagina_como_acionar?.conteudo);
   const motivos = motivosAcionamento.length ? motivosAcionamento : ['Violência física ou psicológica', 'Abuso sexual', 'Negligência ou abandono', 'Trabalho infantil', 'Evasão escolar', 'Outras violações de direitos'];
-  const telefonesExibidos = telefones.length ? telefones.slice(0, 6) : [
+  const telefonesExibidos = loading ? [] : telefones.length ? telefones.slice(0, 6) : [
     { id: -1, titulo: 'Disque Direitos Humanos', telefone: '100', descricao: 'Canal nacional, gratuito e confidencial.' },
     { id: -2, titulo: 'Polícia Militar', telefone: '190', descricao: 'Emergências e situações de perigo imediato.' },
   ];
@@ -188,8 +183,17 @@ export default function Home({ campanhas, noticias, telefones, configuracoes, pa
           text="Informação também protege. Conheça iniciativas de conscientização e compartilhe com sua comunidade."
           action={<Link href="/campanhas" className="btn-secondary">Ver todas <Icon name="arrow" size={17} /></Link>}
         />
+        {error && <p className="mb-6 rounded-xl bg-rose-50 p-4 text-sm text-rose-700">{error}</p>}
         <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
-          {campanhas.length === 0 && <p className="col-span-full rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center text-sm text-slate-500">Nenhuma campanha em destaque no momento.</p>}
+          {loading && Array.from({ length: 4 }).map((_, index) => (
+            <article key={index} className="rounded-2xl bg-slate-200/70 p-6">
+              <Skeleton className="h-4 w-20 bg-white/40" />
+              <Skeleton className="mt-4 h-8 w-full bg-white/40" />
+              <Skeleton className="mt-3 h-4 w-full bg-white/40" />
+              <Skeleton className="mt-2 h-4 w-[88%] bg-white/40" />
+            </article>
+          ))}
+          {!loading && campanhas.length === 0 && <p className="col-span-full rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center text-sm text-slate-500">Nenhuma campanha em destaque no momento.</p>}
           {campanhas.map((item, index) => (
             <Link
               href={`/campanhas/${item.slug}`}
@@ -273,7 +277,18 @@ export default function Home({ campanhas, noticias, telefones, configuracoes, pa
           action={<Link href="/noticias" className="btn-secondary">Todas as notícias <Icon name="arrow" size={17} /></Link>}
         />
         <div className="grid gap-6 lg:grid-cols-3">
-          {noticias.length === 0 && <p className="col-span-full rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center text-sm text-slate-500">Nenhuma notícia publicada.</p>}
+          {loading && Array.from({ length: 3 }).map((_, index) => (
+            <article key={index} className="card overflow-hidden">
+              <Skeleton className="h-52 w-full rounded-none" />
+              <div className="p-6">
+                <div className="flex items-center justify-between"><Skeleton className="h-6 w-20 rounded-full" /><Skeleton className="h-3 w-20" /></div>
+                <Skeleton className="mt-4 h-7 w-4/5" />
+                <Skeleton className="mt-4 h-4 w-full" />
+                <Skeleton className="mt-2 h-4 w-[90%]" />
+              </div>
+            </article>
+          ))}
+          {!loading && noticias.length === 0 && <p className="col-span-full rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center text-sm text-slate-500">Nenhuma notícia publicada.</p>}
           {noticias.slice(0, 3).map((noticia, index) => (
             <Link href={`/noticias/${noticia.slug}`} key={noticia.id} className="card group overflow-hidden transition duration-300 hover:-translate-y-1 hover:shadow-xl">
               {noticia.imagem ? <img src={resolvePublicImageUrl(noticia.imagem)} alt="" className="h-52 w-full object-cover transition duration-500 group-hover:scale-105" /> : <div className={`h-52 bg-gradient-to-br ${['from-blue-100 to-emerald-100', 'from-amber-100 to-orange-100', 'from-violet-100 to-blue-100'][index % 3]}`} />}
@@ -299,6 +314,18 @@ export default function Home({ campanhas, noticias, telefones, configuracoes, pa
         <div>
           <SectionTitle kicker="Serviços essenciais" title="Telefones úteis" text="Canais para orientação, proteção e atendimento em diferentes situações." />
           <div className="grid gap-3 sm:grid-cols-2">
+            {loading && Array.from({ length: 4 }).map((_, index) => (
+              <article key={index} className="card p-5">
+                <div className="flex items-center gap-4">
+                  <Skeleton className="h-11 w-11 rounded-xl" />
+                  <div className="min-w-0 flex-1">
+                    <Skeleton className="h-5 w-2/3" />
+                    <Skeleton className="mt-2 h-6 w-1/3" />
+                    <Skeleton className="mt-2 h-4 w-full" />
+                  </div>
+                </div>
+              </article>
+            ))}
             {telefonesExibidos.map(item => (
               <a href={`tel:${item.telefone}`} key={item.id} className="card group flex items-center gap-4 p-5 transition hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-md">
                 <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-blue-50 text-blue-600"><Icon name="phone" size={20} /></span>
@@ -314,7 +341,15 @@ export default function Home({ campanhas, noticias, telefones, configuracoes, pa
           <h2 className="mt-3 text-2xl font-extrabold">Ideias que ajudam a transformar</h2>
           <p className="mt-3 text-sm leading-7 text-white/70">Contribuições aprovadas mostram o que a comunidade gostaria de construir junto.</p>
           <div className="mt-7 grid gap-3">
-            {sugestoes.length === 0 && <p className="rounded-2xl bg-white/10 p-5 text-sm text-white/70">Ainda não há sugestões publicadas. Você pode enviar a primeira.</p>}
+            {loading && Array.from({ length: 3 }).map((_, index) => (
+              <article key={index} className="rounded-2xl bg-white/10 p-5 backdrop-blur">
+                <Skeleton className="h-5 w-2/3 bg-white/20" />
+                <Skeleton className="mt-3 h-4 w-full bg-white/20" />
+                <Skeleton className="mt-2 h-4 w-[90%] bg-white/20" />
+                <Skeleton className="mt-3 h-4 w-1/3 bg-white/20" />
+              </article>
+            ))}
+            {!loading && sugestoes.length === 0 && <p className="rounded-2xl bg-white/10 p-5 text-sm text-white/70">Ainda não há sugestões publicadas. Você pode enviar a primeira.</p>}
             {sugestoes.slice(0, 3).map(item => (
               <article key={item.id} className="rounded-2xl bg-white/10 p-5 backdrop-blur">
                 <div className="flex items-center justify-between gap-3"><strong className="text-sm">{item.assunto}</strong>{item.created_at && <time className="text-[10px] text-white/45">{new Date(item.created_at).toLocaleDateString('pt-BR')}</time>}</div>
@@ -327,7 +362,7 @@ export default function Home({ campanhas, noticias, telefones, configuracoes, pa
         </aside>
       </section>
 
-      <HomeFaq content={faq_conteudo} />
+      <HomeFaq content={faq_conteudo} loading={loading} />
 
       <section className="container-app mt-20 grid gap-6 lg:grid-cols-[1.1fr_.9fr]">
         <article className="card p-7 sm:p-9">
@@ -362,43 +397,3 @@ export default function Home({ campanhas, noticias, telefones, configuracoes, pa
     </PublicLayout>
   );
 }
-
-export const getServerSideProps: GetServerSideProps<HomeData> = async () => {
-  const base = getApiBaseUrl();
-
-  try {
-    const [response, faqResponse, sugestoesResponse] = await Promise.all([
-      fetch(`${base}/home`),
-      fetch(`${base}/paginas/faq`).catch(() => null),
-      fetch(`${base}/sugestoes-aprovadas`).catch(() => null),
-    ]);
-    if (!response.ok) throw new Error('API indisponível');
-    const data = await response.json();
-    const faq = faqResponse?.ok ? await faqResponse.json() : null;
-    const sugestoesData = sugestoesResponse?.ok ? await sugestoesResponse.json() : null;
-
-    return {
-      props: {
-        campanhas: data.campanhas || [],
-        noticias: data.noticias || [],
-        telefones: data.telefones || [],
-        configuracoes: data.configuracoes || {},
-        pagina_como_acionar: data.pagina_como_acionar || null,
-        faq_conteudo: faq?.data?.conteudo || null,
-        sugestoes: sugestoesData?.data?.slice(0, 3) || [],
-      },
-    };
-  } catch {
-    return {
-      props: {
-        campanhas: [],
-        noticias: [],
-        telefones: [],
-        configuracoes: {},
-        pagina_como_acionar: null,
-        faq_conteudo: null,
-        sugestoes: [],
-      },
-    };
-  }
-};

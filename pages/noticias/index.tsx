@@ -1,16 +1,40 @@
-import { GetServerSideProps } from 'next';
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Icon from '../../components/Icon';
 import PageHero from '../../components/PageHero';
 import PublicLayout from '../../components/PublicLayout';
-import { getApiBaseUrl } from '../../lib/api-base';
+import { Skeleton } from '../../components/Skeleton';
 import { resolvePublicImageUrl } from '../../lib/image-url';
+import { fetchNoticias, Noticia } from '../../lib/public-content';
 
-type Noticia = { id: number; slug: string; titulo: string; resumo: string; data_publicacao?: string; imagem?: string };
-
-export default function Noticias({ items }: { items: Noticia[] }) {
+export default function Noticias() {
+  const [items, setItems] = useState<Noticia[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [search, setSearch] = useState('');
+
+  useEffect(() => {
+    let active = true;
+    setLoading(true);
+    fetchNoticias()
+      .then((data) => {
+        if (!active) return;
+        setItems(data);
+        setError('');
+      })
+      .catch(() => {
+        if (!active) return;
+        setError('Não foi possível carregar as notícias agora.');
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
   const filtered = useMemo(() => items.filter(item => `${item.titulo} ${item.resumo}`.toLowerCase().includes(search.toLowerCase())), [items, search]);
 
   return (
@@ -25,9 +49,24 @@ export default function Noticias({ items }: { items: Noticia[] }) {
             <input value={search} onChange={event => setSearch(event.target.value)} className="w-full bg-transparent text-sm outline-none" placeholder="Buscar por título ou assunto..." />
           </label>
         </div>
-        {search && <p className="mb-5 text-xs font-bold text-slate-500">{filtered.length} resultado(s) para “{search}”</p>}
+        {error && <p className="mb-5 rounded-xl bg-rose-50 p-4 text-sm text-rose-700">{error}</p>}
+        {!loading && search && <p className="mb-5 text-xs font-bold text-slate-500">{filtered.length} resultado(s) para “{search}”</p>}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {filtered.length === 0 && <div className="col-span-full rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center"><Icon name="search" size={34} className="mx-auto text-slate-300" /><p className="mt-4 text-sm text-slate-500">Nenhuma notícia encontrada.</p></div>}
+          {loading && Array.from({ length: 6 }).map((_, index) => (
+            <article key={index} className="card overflow-hidden">
+              <Skeleton className="h-52 w-full rounded-none" />
+              <div className="p-6">
+                <div className="flex items-center justify-between gap-3">
+                  <Skeleton className="h-6 w-20 rounded-full" />
+                  <Skeleton className="h-3 w-20" />
+                </div>
+                <Skeleton className="mt-4 h-7 w-4/5" />
+                <Skeleton className="mt-4 h-4 w-full" />
+                <Skeleton className="mt-2 h-4 w-[92%]" />
+              </div>
+            </article>
+          ))}
+          {!loading && filtered.length === 0 && <div className="col-span-full rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center"><Icon name="search" size={34} className="mx-auto text-slate-300" /><p className="mt-4 text-sm text-slate-500">Nenhuma notícia encontrada.</p></div>}
           {filtered.map((item, index) => (
             <Link href={`/noticias/${item.slug}`} className="card group overflow-hidden transition duration-300 hover:-translate-y-1 hover:shadow-xl" key={item.id}>
               <div className="overflow-hidden">{item.imagem ? <img className="h-52 w-full object-cover transition duration-500 group-hover:scale-105" src={resolvePublicImageUrl(item.imagem)} alt="" /> : <div className={`h-52 bg-gradient-to-br ${['from-blue-100 to-emerald-100', 'from-orange-100 to-amber-50', 'from-violet-100 to-blue-100'][index % 3]}`} />}</div>
@@ -44,14 +83,3 @@ export default function Noticias({ items }: { items: Noticia[] }) {
     </PublicLayout>
   );
 }
-
-export const getServerSideProps: GetServerSideProps = async () => {
-  const base = getApiBaseUrl();
-  try {
-    const response = await fetch(`${base}/noticias`);
-    const data = response.ok ? await response.json() : { data: [] };
-    return { props: { items: data.data || [] } };
-  } catch {
-    return { props: { items: [] } };
-  }
-};

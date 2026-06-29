@@ -1,8 +1,33 @@
+import { useEffect, useState } from 'react';
 import InstitutionalPage from '../components/InstitutionalPage';
-import { institutionalPageProps, InstitutionalPageData } from '../lib/institutional';
+import { fetchInstitutionalPage, InstitutionalPageData } from '../lib/institutional';
 
-export default function Faq({ pagina }: { pagina: InstitutionalPageData }) {
-  return <InstitutionalPage pagina={pagina} />;
+export default function Faq() {
+  const [pagina, setPagina] = useState<InstitutionalPageData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    setLoading(true);
+    fetchInstitutionalPage('faq')
+      .then((data) => {
+        if (!active) return;
+        setPagina(data);
+        setError(null);
+      })
+      .catch(() => {
+        if (!active) return;
+        setError('Não foi possível carregar as perguntas frequentes.');
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  return <InstitutionalPage pagina={pagina} loading={loading} error={error} fallbackTitle="Perguntas Frequentes" fallbackDescription="Respostas objetivas para dúvidas comuns sobre atendimento, denúncias e atuação do Conselho Tutelar." fallbackIcon="info" />;
 }
-
-export const getServerSideProps = institutionalPageProps('faq');

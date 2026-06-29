@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { ReactNode, useEffect, useLayoutEffect, useState } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import Brand from './Brand';
 import Icon from './Icon';
 import { Skeleton } from './Skeleton';
@@ -29,27 +29,27 @@ let cachedToken: string | null = null;
 let cachedUser: AdminUser | null = null;
 let validationPromise: Promise<AdminUser> | null = null;
 
-const useIsomorphicLayoutEffect = typeof window !== 'undefined' ? useLayoutEffect : useEffect;
-
 export default function AdminLayout({ children, title, action }: { children: ReactNode; title: string; action?: ReactNode }) {
   const router = useRouter();
   const [menu, setMenu] = useState(false);
-  const [ready, setReady] = useState(false);
+  const [ready, setReady] = useState<boolean | null>(null);
   const [user, setUser] = useState<AdminUser>({ name: 'Administrador', email: '' });
 
-  useIsomorphicLayoutEffect(() => {
+  useEffect(() => {
     const token = localStorage.getItem('admin_token');
 
     if (!token) {
       cachedToken = null;
       cachedUser = null;
+      setReady(false);
       void router.replace('/admin/login');
       return;
     }
 
+    setReady(true);
+
     if (cachedToken === token && cachedUser) {
       setUser(cachedUser);
-      setReady(true);
       return;
     }
 
@@ -63,13 +63,13 @@ export default function AdminLayout({ children, title, action }: { children: Rea
         cachedToken = token;
         cachedUser = adminUser;
         setUser(adminUser);
-        setReady(true);
       })
       .catch(() => {
         if (cancelled) return;
         localStorage.removeItem('admin_token');
         cachedToken = null;
         cachedUser = null;
+        setReady(false);
         void router.replace('/admin/login');
       })
       .finally(() => {
@@ -91,7 +91,7 @@ export default function AdminLayout({ children, title, action }: { children: Rea
     await router.push('/admin/login');
   }
 
-  if (!ready) {
+  if (ready !== true) {
     return (
       <div className="min-h-screen bg-[#f4f7fb]">
         <aside className="fixed inset-y-0 left-0 hidden w-64 bg-[#082754] p-5 text-white lg:block">
